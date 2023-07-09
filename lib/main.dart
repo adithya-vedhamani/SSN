@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import 'Screens/intro_page.dart';
 
 void main() {
@@ -23,16 +22,16 @@ class MyApp extends StatelessWidget {
       title: 'QR Code',
       theme: ThemeData(
         useMaterial3: true,
-        scaffoldBackgroundColor: Colors.brown[400],
+        scaffoldBackgroundColor: Colors.white,
         appBarTheme: AppBarTheme(
-          backgroundColor: Colors.brown[500],
+          backgroundColor: Color(0xFF1B61A9),
           elevation: 1,
         ),
         textTheme: TextTheme(
           headline1: GoogleFonts.poppins(
             fontSize: 26,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: Colors.white,
           ),
           headline2: GoogleFonts.poppins(
             fontSize: 20,

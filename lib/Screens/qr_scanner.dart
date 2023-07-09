@@ -1,158 +1,153 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:qr_code/Screens/qr_screen_result.dart';
-import 'package:qr_code/Widgets/tool.dart';
+import 'package:qr_code/user_role.dart';
+import '../globals.dart';
+import 'package:qr_code/Screens/intro_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class QRScannerPage extends StatefulWidget {
+  final String username;
+  final String role;
+
+  QRScannerPage({required this.username, required this.role, Key? key})
+      : super(key: key) {
+    Globals.username = username;
+  } // Set the global username value
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  _QRScannerPageState createState() => _QRScannerPageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  //* qr scan transaction
+class _QRScannerPageState extends State<QRScannerPage> {
   bool isScanComplete = false;
 
-  //* flash bool
-  bool isFlash = false;
-
-  //* cam bool
-  bool isCam = false;
-
-  //* toggle flash controller
-  MobileScannerController controller = MobileScannerController();
-
-  //* change page
   void closeScanner() {
     setState(() {
       isScanComplete = false;
     });
   }
 
+  void scanBarcode() async {
+    try {
+      final barcode = await FlutterBarcodeScanner.scanBarcode(
+        '#ff6666',
+        'Cancel',
+        true,
+        ScanMode.QR,
+      );
+
+      if (barcode != '-1') {
+        setState(() {
+          isScanComplete = true;
+          UserRole userRole = _getUserRole(widget.role);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => QrResultPage(
+                closeScreen: closeScanner,
+                qrResult: barcode,
+                userRole: userRole,
+              ),
+            ),
+          );
+        });
+      }
+    } on PlatformException {
+      // Handle platform exception if any
+    }
+  }
+
+  UserRole _getUserRole(String role) {
+    switch (role) {
+      case 'Verifier':
+        return UserRole.Verifier;
+      case 'Proctor':
+        return UserRole.Proctor;
+      case 'Interviewer':
+        return UserRole.Interviewer;
+      default:
+        return UserRole.General; // Default role in case of unknown or unsupported roles
+    }
+  }
+
+  void _logout() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+
+    Globals.username = '';
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => IntroPage()),
+          (Route<dynamic> route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //* app bar
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            HapticFeedback.heavyImpact();
-            Navigator.pop(context);
-          },
-          icon: const Icon(
-            Icons.arrow_back_ios,
-          ),
-        ),
         title: Text(
           'QR Scanner',
           style: Theme.of(context).textTheme.headline1,
         ),
         centerTitle: true,
+        actions: [
+          PopupMenuButton(
+            itemBuilder: (BuildContext context) {
+              return [
+                PopupMenuItem(
+                  child: ListTile(
+                    leading: Icon(Icons.logout),
+                    title: Text('Logout'),
+                    onTap: _logout,
+                  ),
+                ),
+              ];
+            },
+          ),
+        ],
       ),
-
-      //* body
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 15),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(height: 20),
-            //* Body title
-            Expanded(
-              child: Column(
-                children: [
-                  Text(
-                    "Place your QR code here",
-                    style: Theme.of(context).textTheme.bodyText1,
-                  ),
-                  Text(
-                    "Scanned Automatically",
-                    style: Theme.of(context).textTheme.bodyText2,
-                  ),
-                ],
+      body: Container(
+        color: Colors.white,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Username: ${widget.username}',
+                style: TextStyle(fontSize: 16.0),
               ),
-            ),
-
-            //* Camera Container
-            Expanded(
-              flex: 2,
-              child: MobileScanner(
-                controller: controller,
-                allowDuplicates: true,
-                onDetect: (barcode, args) {
-                  if (!isScanComplete) {
-                    String qrResult = barcode.rawValue ?? "---";
-                    setState(() {
-                      isScanComplete = true;
-                    });
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => QrResultPage(
-                          closeScreen: closeScanner,
-                          qrResult: qrResult,
-                        ),
-                      ),
-                    );
-                  }
-                },
+              const SizedBox(height: 8.0),
+              Text(
+                'Role: ${widget.role}',
+                style: TextStyle(fontSize: 16.0),
               ),
-            ),
-
-            //* Tools Container
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  //* flash toggle
-                  MyTool(
-                    onPressed: () {
-                      HapticFeedback.heavyImpact();
-                      setState(() {
-                        isFlash = !isFlash;
-                      });
-                      controller.toggleTorch();
-                    },
-                    text: "Flash",
-                    icon: Icon(
-                      Icons.flash_on,
-                      color: isFlash ? Colors.yellow : Colors.white,
-                    ),
-                  ),
-
-                  //* camera toggle
-                  MyTool(
-                    onPressed: () {
-                      HapticFeedback.heavyImpact();
-                      setState(() {
-                        isCam = !isCam;
-                      });
-                      controller.switchCamera();
-                    },
-                    text: "Camera",
-                    icon: const Icon(
-                      Icons.switch_camera_outlined,
-                      color: Colors.white,
-                    ),
-                  ),
-
-                  //* gallery toggle
-                  MyTool(
-                    text: "Gallery",
-                    onPressed: () {
-                      HapticFeedback.heavyImpact();
-                    },
-                    icon: const Icon(
-                      Icons.browse_gallery_outlined,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 16.0),
+              Text(
+                'Press the button to scan QR',
+                style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
               ),
-            ),
-          ],
+              const SizedBox(height: 16.0),
+              ElevatedButton(
+                onPressed: scanBarcode,
+                child: Icon(
+                  Icons.qr_code_scanner,
+                  color: Colors.white,
+                  size: 100,
+                ),
+                style: ElevatedButton.styleFrom(
+                  primary: Color(0xFF1B61A9),
+                  padding: const EdgeInsets.all(14.0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

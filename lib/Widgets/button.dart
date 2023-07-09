@@ -16,11 +16,11 @@ class MyButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ButtonTheme(
-      minWidth: 200,
+      minWidth: 210,
       height: 50,
       padding: const EdgeInsets.only(top: 18.0, bottom: 18.0),
       child: MaterialButton(
-        color: Colors.brown.shade600,
+        color: Color(0xFF1B61A9),
         elevation: 2,
         shape: RoundedRectangleBorder(
           side: const BorderSide(color: Colors.black, width: 2),

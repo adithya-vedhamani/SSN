@@ -1,0 +1,4 @@
+#Tue Jun 20 14:21:13 IST 2023
+base.0=C\:\\Users\\ADITHYA VEDHAMANI\\StudioProjects\\QR-Code---Generate-Scan - Copy -1008\\build\\app\\intermediates\\dex\\release\\minifyReleaseWithR8\\classes.dex
+path.0=classes.dex
+renamed.0=classes.dex

@@ -21,7 +21,7 @@ class MyTool extends StatelessWidget {
         height: 80,
         width: 80,
         decoration: BoxDecoration(
-          color: Colors.brown[700],
+          color: Color(0xFF1B61A9),
           borderRadius: BorderRadius.circular(40),
         ),
         child: Column(
